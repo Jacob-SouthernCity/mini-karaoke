@@ -100,6 +100,15 @@
                 android:layout_height="44dp"
                 android:text="↻ Refresh Status"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:textColor="@color/karaoke_text_secondary"
+                android:layout_marginBottom="10dp"/>
+
+            <Button
+                android:id="@+id/btnSavedReplays"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="📁 Saved Replays"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:textColor="@color/karaoke_text_secondary"/>
         </LinearLayout>
 

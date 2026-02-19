@@ -30,6 +30,7 @@
         <activity android:name=".ui.SongDetailActivity" android:exported="false" />
         <activity android:name=".ui.SingActivity" android:exported="false" />
         <activity android:name=".ui.ResultActivity" android:exported="false" />
+        <activity android:name=".ui.SavedReplaysActivity" android:exported="false" />
 
     </application>
 

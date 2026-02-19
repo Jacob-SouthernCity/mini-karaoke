@@ -25,6 +25,7 @@ class SongDetailActivity : AppCompatActivity() {
     private lateinit var btnSing: Button
     private lateinit var btnRefresh: Button
     private lateinit var btnSeparate: Button
+    private lateinit var btnSavedReplays: Button
     private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +41,7 @@ class SongDetailActivity : AppCompatActivity() {
         btnSing    = findViewById(R.id.btnSing)
         btnRefresh = findViewById(R.id.btnRefresh)
         btnSeparate = findViewById(R.id.btnSeparate)
+        btnSavedReplays = findViewById(R.id.btnSavedReplays)
         progressBar = findViewById(R.id.progressBar)
 
         // Set from intent extras for quick display
@@ -57,6 +59,13 @@ class SongDetailActivity : AppCompatActivity() {
         btnRefresh.setOnClickListener { loadDetail() }
 
         btnSeparate.setOnClickListener { triggerSeparation() }
+
+        btnSavedReplays.setOnClickListener {
+            startActivity(Intent(this, SavedReplaysActivity::class.java).apply {
+                putExtra("filterSongId", songId)
+                putExtra("filterSongTitle", songDetail?.title ?: tvTitle.text.toString())
+            })
+        }
 
         loadDetail()
     }

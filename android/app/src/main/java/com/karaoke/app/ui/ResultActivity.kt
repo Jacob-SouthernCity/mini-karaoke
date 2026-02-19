@@ -21,6 +21,7 @@ import com.karaoke.app.audio.RNNoise
 import com.karaoke.app.audio.VoiceClassifier
 import com.karaoke.app.audio.WavUtils
 import com.karaoke.app.network.ApiService
+import com.karaoke.app.replay.SavedReplayStore
 import kotlinx.coroutines.*
 import java.io.File
 
@@ -29,6 +30,14 @@ class ResultActivity : AppCompatActivity() {
     private var recordingPath: String = ""
     private var sampleRate: Int = 44100
     private var songId: String = ""
+    private var songTitle: String = ""
+    private var isFromSavedReplay: Boolean = false
+
+    private var presetMix: Int? = null
+    private var presetVocalVol: Int? = null
+    private var presetBackingVol: Int? = null
+    private var presetSyncOffset: Int? = null
+    private var presetManualSync: Boolean? = null
 
     // Denoising output — computed once, used by karaoke playback in real time
     private var originalSamples: ShortArray? = null
@@ -77,7 +86,14 @@ class ResultActivity : AppCompatActivity() {
         recordingPath = intent.getStringExtra("recordingPath") ?: ""
         sampleRate    = intent.getIntExtra("sampleRate", 44100)
         songId        = intent.getStringExtra("songId") ?: ""
-        val songTitle = intent.getStringExtra("songTitle") ?: ""
+        songTitle     = intent.getStringExtra("songTitle") ?: ""
+        isFromSavedReplay = intent.getBooleanExtra("fromSavedReplay", false)
+
+        if (intent.hasExtra("presetMix")) presetMix = intent.getIntExtra("presetMix", 80)
+        if (intent.hasExtra("presetVocalVol")) presetVocalVol = intent.getIntExtra("presetVocalVol", 100)
+        if (intent.hasExtra("presetBackingVol")) presetBackingVol = intent.getIntExtra("presetBackingVol", 80)
+        if (intent.hasExtra("presetSyncOffset")) presetSyncOffset = intent.getIntExtra("presetSyncOffset", 0)
+        if (intent.hasExtra("presetManualSync")) presetManualSync = intent.getBooleanExtra("presetManualSync", false)
 
         tvSongTitle      = findViewById(R.id.tvSongTitle)
         tvRecordingInfo  = findViewById(R.id.tvRecordingInfo)
@@ -102,17 +118,19 @@ class ResultActivity : AppCompatActivity() {
         tvSongTitle.text = songTitle
 
         sliderMix.max = 100
-        sliderMix.progress = 80
+        sliderMix.progress = presetMix ?: 80
 
         sliderVocalVol.max = 100
-        sliderVocalVol.progress = 100
+        sliderVocalVol.progress = presetVocalVol ?: 100
 
-        sliderBackingVol.max = 100; sliderBackingVol.progress = 80
+        sliderBackingVol.max = 100
+        sliderBackingVol.progress = presetBackingVol ?: 80
 
         // Sync offset slider: 0–500 ms. Default is set once measurement completes.
         sliderSyncOffset.max = 500
-        sliderSyncOffset.isEnabled = false
-        switchManualSync.isChecked = false
+        switchManualSync.isChecked = presetManualSync ?: false
+        sliderSyncOffset.isEnabled = switchManualSync.isChecked
+        sliderSyncOffset.progress = presetSyncOffset ?: 0
         switchManualSync.setOnCheckedChangeListener { _, enabled ->
             sliderSyncOffset.isEnabled = enabled
         }
@@ -147,8 +165,10 @@ class ResultActivity : AppCompatActivity() {
             val ms = measureSyncOffsetMs()
             withContext(Dispatchers.Main) {
                 measuredSyncOffsetMs = ms
-                sliderSyncOffset.progress = ms
-                tvSyncOffsetMs.text = "${ms} ms"
+                if (!switchManualSync.isChecked) {
+                    sliderSyncOffset.progress = ms
+                    tvSyncOffsetMs.text = "${ms} ms"
+                }
             }
         }
 
@@ -388,6 +408,23 @@ class ResultActivity : AppCompatActivity() {
         btnStopKaraoke.isEnabled = false
     }
 
+    private fun persistReplayPreset() {
+        val file = File(recordingPath)
+        if (!file.exists() || songId.isBlank()) return
+        SavedReplayStore.upsertForRecording(
+            context = this,
+            songId = songId,
+            songTitle = songTitle.ifBlank { "Untitled song" },
+            recordingPath = recordingPath,
+            sampleRate = sampleRate,
+            mix = sliderMix.progress,
+            vocalVol = sliderVocalVol.progress,
+            backingVol = sliderBackingVol.progress,
+            syncOffset = sliderSyncOffset.progress,
+            manualSync = switchManualSync.isChecked
+        )
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /**
@@ -447,5 +484,10 @@ class ResultActivity : AppCompatActivity() {
         super.onDestroy()
         stopRawPlayback()
         stopKaraokePlayback()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (!isFromSavedReplay) persistReplayPreset()
     }
 }
