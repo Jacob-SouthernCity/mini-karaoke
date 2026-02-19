@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karaoke Portal</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0D0D1E;
+    color: #e0e0ff;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #512DA8 0%, #7C4DFF 60%, #FF4081 100%);
+    padding: 28px 32px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 24px rgba(124,77,255,0.4);
+  }
+  .header-logo { display: flex; align-items: center; gap: 12px; }
+  .header-logo span { font-size: 36px; }
+  .header-logo h1 { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: 1px; }
+  .header-logo p  { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+  .btn-add {
+    background: #fff;
+    color: #512DA8;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 26px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  }
+  .btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
+
+  /* ── Main content ── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+
+  /* ── Search ── */
+  .search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .search-bar input {
+    flex: 1;
+    background: #1A1A3E;
+    border: 1px solid #2A2A5A;
+    border-radius: 10px;
+    color: #e0e0ff;
+    padding: 12px 18px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-bar input::placeholder { color: #6666AA; }
+  .search-bar input:focus { border-color: #7C4DFF; }
+  .btn { border: none; border-radius: 10px; padding: 12px 22px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+  .btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.45; cursor: default; transform: none; }
+  .btn-primary { background: #7C4DFF; color: #fff; }
+  .btn-ghost   { background: transparent; color: #AAAACC; border: 1px solid #2A2A5A; }
+
+  /* ── Song cards ── */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #6666AA;
+    margin-bottom: 14px;
+  }
+  .song-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+  }
+  .song-card {
+    background: #1A1A3E;
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid #2A2A5A;
+    transition: border-color 0.2s, transform 0.15s, box-shadow 0.15s;
+  }
+  .song-card:hover {
+    border-color: #7C4DFF;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(124,77,255,0.2);
+    text-decoration: none;
+    color: inherit;
+  }
+  .song-icon {
+    width: 46px; height: 46px;
+    background: #2A2A5A;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .song-info { flex: 1; min-width: 0; }
+  .song-title { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .song-artist { font-size: 13px; color: #AAAACC; margin-top: 3px; }
+  .badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 50px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge-UPLOADED   { background: #2A2A5A; color: #AAAACC; }
+  .badge-PROCESSING { background: rgba(255,145,0,0.2); color: #FF9100; }
+  .badge-READY      { background: rgba(0,230,118,0.15); color: #00E676; }
+  .badge-FAILED     { background: rgba(255,82,82,0.2);  color: #FF5252; }
+
+  .progress-wrap {
+    width: 100%;
+    background: #2A2A5A;
+    border-radius: 4px;
+    height: 4px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 4px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #7C4DFF, #FF4081);
+    transition: width 0.4s ease;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6666AA;
+    grid-column: 1/-1;
+  }
+  .empty-state .big-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 15px; }
+
+  /* ── Upload Modal ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: #16163A;
+    border: 1px solid #2A2A5A;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 520px;
+    margin: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  .modal-header {
+    background: linear-gradient(135deg, #512DA8, #7C4DFF);
+    padding: 22px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-header h2 { font-size: 20px; font-weight: 700; color: #fff; }
+  .modal-close {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: #fff;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.3); }
+  .modal-body { padding: 28px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: #AAAACC; margin-bottom: 6px; }
+  .form-group input[type="text"] {
+    width: 100%;
+    background: #0D0D1E;
+    border: 1px solid #2A2A5A;
+    border-radius: 10px;
+    color: #e0e0ff;
+    padding: 12px 16px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input[type="text"]:focus { border-color: #7C4DFF; }
+  .form-group input[type="text"]::placeholder { color: #4444AA; }
+
+  .drop-zone {
+    border: 2px dashed #2A2A5A;
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.dragover { border-color: #7C4DFF; background: rgba(124,77,255,0.05); }
+  .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .drop-zone .drop-icon { font-size: 32px; margin-bottom: 8px; }
+  .drop-zone p { font-size: 14px; color: #AAAACC; }
+  .drop-zone .file-name { font-size: 13px; color: #7C4DFF; font-weight: 600; margin-top: 6px; }
+
+  .modal-status {
+    margin: 16px 0 0;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    display: none;
+  }
+  .modal-status.success { background: rgba(0,230,118,0.12); color: #00E676; display: block; }
+  .modal-status.error   { background: rgba(255,82,82,0.12);  color: #FF5252; display: block; }
+  .modal-status.info    { background: rgba(124,77,255,0.12); color: #AAAACC; display: block; }
+
+  .modal-progress {
+    display: none;
+    margin-top: 14px;
+  }
+  .modal-progress.visible { display: block; }
+  .modal-progress-label { font-size: 13px; color: #AAAACC; margin-bottom: 6px; }
+  .modal-progress-bar-wrap { background: #2A2A5A; border-radius: 6px; height: 8px; overflow: hidden; }
+  .modal-progress-bar { height: 8px; background: linear-gradient(90deg, #7C4DFF, #FF4081); border-radius: 6px; transition: width 0.4s ease; }
+
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-actions .btn { flex: 1; padding: 14px; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-logo">
+    <span>🎤</span>
+    <div>
+      <h1>Karaoke Portal</h1>
+      <p>AI-powered vocal separation</p>
+    </div>
+  </div>
+  <button class="btn-add" onclick="openModal()">
+    <span>＋</span> Add Song
+  </button>
+</header>
+
+<!-- Main -->
+<main class="main">
+  <!-- Search -->
+  <form method="get" action="/" class="search-bar">
+    <input type="text" name="query" value="{{ query }}" placeholder="Search by title or artist…">
+    <button type="submit" class="btn btn-primary">Search</button>
+    {% if query %}<a href="/" class="btn btn-ghost">Clear</a>{% endif %}
+  </form>
+
+  <!-- Song grid -->
+  <p class="section-title">{{ songs|length }} Song{{ 's' if songs|length != 1 }}</p>
+  <div class="song-grid" id="songGrid">
+    {% for song in songs %}
+    <a class="song-card" href="/songs/{{ song.id }}" id="card-{{ song.id }}">
+      <div class="song-icon">♪</div>
+      <div class="song-info">
+        <div class="song-title">{{ song.title }}</div>
+        <div class="song-artist">{{ song.artist }}</div>
+        {% if song.status == 'PROCESSING' %}
+        <div class="progress-wrap">
+          <div class="progress-bar" id="bar-{{ song.id }}" style="width:{{ song.progress }}%"></div>
+        </div>
+        {% endif %}
+      </div>
+      <span class="badge badge-{{ song.status }}" id="badge-{{ song.id }}">
+        {% if song.status == 'READY' %}✓ Ready
+        {% elif song.status == 'PROCESSING' %}⏳ Processing
+        {% elif song.status == 'FAILED' %}✕ Failed
+        {% else %}↑ Uploaded{% endif %}
+      </span>
+    </a>
+    {% else %}
+    <div class="empty-state">
+      <div class="big-icon">🎵</div>
+      <p>No songs yet. Click <strong>Add Song</strong> to get started!</p>
+    </div>
+    {% endfor %}
+  </div>
+</main>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>🎵 Add New Song</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Phase 1: Upload form -->
+      <div id="phaseUpload">
+        <div class="form-group">
+          <label>Song Title</label>
+          <input type="text" id="titleInput" placeholder="e.g. Bohemian Rhapsody" required>
+        </div>
+        <div class="form-group">
+          <label>Artist</label>
+          <input type="text" id="artistInput" placeholder="e.g. Queen" required>
+        </div>
+        <div class="form-group">
+          <label>Audio File</label>
+          <div class="drop-zone" id="dropZone">
+            <input type="file" id="fileInput" accept="audio/*">
+            <div class="drop-icon">🎵</div>
+            <p>Drop audio file here or click to browse</p>
+            <p style="font-size:12px;color:#4444AA;margin-top:4px">MP3, WAV, FLAC, M4A, OGG</p>
+            <div class="file-name" id="fileName"></div>
+          </div>
+        </div>
+        <div class="modal-status" id="uploadStatus"></div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" id="btnUpload" onclick="doUpload()">Upload Song</button>
+        </div>
+      </div>
+
+      <!-- Phase 2: After upload — separation -->
+      <div id="phaseSeparate" style="display:none">
+        <div class="modal-status success">✅ Song uploaded successfully!</div>
+        <p style="margin:16px 0 8px;color:#AAAACC;font-size:14px">
+          Run AI separation (Demucs) to split the song into vocals + backing track.
+          This takes 1–5 minutes depending on song length.
+        </p>
+        <div class="modal-status" id="sepStatus"></div>
+        <div class="modal-progress" id="modalProgress">
+          <div class="modal-progress-label" id="progressLabel">0% — Starting…</div>
+          <div class="modal-progress-bar-wrap">
+            <div class="modal-progress-bar" id="modalBar" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="modal-actions" style="margin-top:20px">
+          <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+          <button class="btn btn-primary" id="btnSeparate" onclick="doSeparate()">✨ Start AI Separation</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Modal ────────────────────────────────────────────────────────
+let uploadedSongId = null;
+let sepPoller = null;
+
+function openModal() {
+  document.getElementById('uploadModal').classList.add('open');
+  resetModal();
+}
+function closeModal() {
+  document.getElementById('uploadModal').classList.remove('open');
+  if (uploadedSongId) location.reload();
+}
+function resetModal() {
+  uploadedSongId = null;
+  document.getElementById('phaseUpload').style.display = '';
+  document.getElementById('phaseSeparate').style.display = 'none';
+  document.getElementById('titleInput').value = '';
+  document.getElementById('artistInput').value = '';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('fileName').textContent = '';
+  setStatus('uploadStatus', '', '');
+}
+
+// Close on overlay click
+document.getElementById('uploadModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// File picker display
+document.getElementById('fileInput').addEventListener('change', function() {
+  const name = this.files[0]?.name || '';
+  document.getElementById('fileName').textContent = name ? '📎 ' + name : '';
+});
+
+// Drag & drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave',  () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('fileInput').files = dt.files;
+    document.getElementById('fileName').textContent = '📎 ' + file.name;
+  }
+});
+
+function setStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'modal-status' + (type ? ' ' + type : '');
+  el.textContent = msg;
+}
+
+// ── Upload ────────────────────────────────────────────────────────
+async function doUpload() {
+  const title  = document.getElementById('titleInput').value.trim();
+  const artist = document.getElementById('artistInput').value.trim();
+  const file   = document.getElementById('fileInput').files[0];
+  if (!title || !artist || !file) {
+    setStatus('uploadStatus', 'error', 'Please fill in all fields and select a file.');
+    return;
+  }
+
+  const btn = document.getElementById('btnUpload');
+  btn.disabled = true;
+  btn.textContent = 'Uploading…';
+  setStatus('uploadStatus', 'info', 'Uploading — please wait…');
+
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('title', title);
+  fd.append('artist', artist);
+
+  try {
+    const resp = await fetch('/api/songs/upload', { method: 'POST', body: fd });
+    const data = await resp.json();
+    if (resp.ok) {
+      uploadedSongId = data.id;
+      document.getElementById('phaseUpload').style.display = 'none';
+      document.getElementById('phaseSeparate').style.display = '';
+    } else {
+      setStatus('uploadStatus', 'error', 'Upload failed: ' + JSON.stringify(data));
+      btn.disabled = false;
+      btn.textContent = 'Upload Song';
+    }
+  } catch (err) {
+    setStatus('uploadStatus', 'error', 'Network error: ' + err);
+    btn.disabled = false;
+    btn.textContent = 'Upload Song';
+  }
+}
+
+// ── Separate ──────────────────────────────────────────────────────
+async function doSeparate() {
+  const btn = document.getElementById('btnSeparate');
+  btn.disabled = true;
+  btn.textContent = 'Starting…';
+  setStatus('sepStatus', 'info', 'Sending to AI separation engine…');
+
+  try {
+    const resp = await fetch(`/api/songs/${uploadedSongId}/separate`, { method: 'POST' });
+    if (resp.ok) {
+      setStatus('sepStatus', 'info', 'Demucs is running — this takes a few minutes…');
+      document.getElementById('modalProgress').classList.add('visible');
+      btn.textContent = 'Running…';
+      startSepPolling();
+    } else {
+      setStatus('sepStatus', 'error', 'Failed to start separation.');
+      btn.disabled = false;
+      btn.textContent = '✨ Start AI Separation';
+    }
+  } catch (err) {
+    setStatus('sepStatus', 'error', 'Network error: ' + err);
+    btn.disabled = false;
+    btn.textContent = '✨ Start AI Separation';
+  }
+}
+
+function startSepPolling() {
+  if (sepPoller) clearInterval(sepPoller);
+  sepPoller = setInterval(async () => {
+    try {
+      const data = await fetch(`/api/songs/${uploadedSongId}/progress`).then(r => r.json());
+      document.getElementById('modalBar').style.width = data.progress + '%';
+      document.getElementById('progressLabel').textContent = data.progress + '% — Demucs is separating vocals…';
+      if (data.status === 'READY') {
+        clearInterval(sepPoller);
+        setStatus('sepStatus', 'success', '✅ Separation complete! Song is ready for karaoke.');
+        document.getElementById('progressLabel').textContent = '100% — Done!';
+        document.getElementById('modalBar').style.width = '100%';
+        document.getElementById('btnSeparate').textContent = '✓ Done';
+      } else if (data.status === 'FAILED') {
+        clearInterval(sepPoller);
+        setStatus('sepStatus', 'error', '✕ Separation failed. Check server logs.');
+        document.getElementById('btnSeparate').disabled = false;
+        document.getElementById('btnSeparate').textContent = 'Retry';
+      }
+    } catch(e) { /* keep polling */ }
+  }, 2000);
+}
+
+// ── Poll existing PROCESSING songs on page load ───────────────────
+document.querySelectorAll('[id^="bar-"]').forEach(el => {
+  const songId = el.id.replace('bar-', '');
+  pollCard(songId);
+});
+
+function pollCard(songId) {
+  const interval = setInterval(async () => {
+    try {
+      const data = await fetch(`/api/songs/${songId}/progress`).then(r => r.json());
+      const bar   = document.getElementById(`bar-${songId}`);
+      if (bar) bar.style.width = data.progress + '%';
+      if (data.status === 'READY' || data.status === 'FAILED') {
+        clearInterval(interval);
+        location.reload();
+      }
+    } catch(e) { /* keep */ }
+  }, 2000);
+}
+
+// ── Separate button in table (kept for backwards compat) ──────────
+async function separate(songId, btn) {
+  btn.disabled = true; btn.textContent = 'Starting…';
+  const resp = await fetch(`/api/songs/${songId}/separate`, { method: 'POST' });
+  if (resp.ok) pollCard(songId);
+  else { btn.disabled = false; btn.textContent = 'Separate'; }
+}
+</script>
+</body>
+</html>

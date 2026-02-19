@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.KaraokeApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/karaoke_purple</item>
+        <item name="colorPrimaryVariant">@color/karaoke_purple_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/karaoke_pink</item>
+        <item name="colorSecondaryVariant">@color/karaoke_pink</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSurface">@color/karaoke_surface</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="android:windowBackground">@color/karaoke_bg</item>
+        <item name="android:statusBarColor">@color/karaoke_purple_dark</item>
+        <item name="android:navigationBarColor">@color/karaoke_bg</item>
+    </style>
+</resources>

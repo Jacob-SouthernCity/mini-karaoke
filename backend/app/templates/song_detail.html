@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ song.title }} — Karaoke Portal</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0D0D1E;
+    color: #e0e0ff;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #512DA8 0%, #7C4DFF 60%, #FF4081 100%);
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 24px rgba(124,77,255,0.4);
+  }
+  .back-btn {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: #fff;
+    border-radius: 50px;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.28); text-decoration: none; }
+  .header-title { font-size: 18px; font-weight: 700; color: #fff; }
+
+  /* ── Content ── */
+  .main { max-width: 680px; margin: 0 auto; padding: 32px 24px; }
+
+  /* Hero card */
+  .hero-card {
+    background: linear-gradient(135deg, #1A1A4E, #2A1A5E);
+    border: 1px solid #3A2A7A;
+    border-radius: 20px;
+    padding: 32px;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .hero-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, #7C4DFF, #FF4081);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    flex-shrink: 0;
+  }
+  .hero-info { flex: 1; }
+  .hero-info h2 { font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+  .hero-info p  { font-size: 15px; color: #AAAACC; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 50px;
+    margin-top: 12px;
+  }
+  .badge-UPLOADED   { background: #2A2A5A; color: #AAAACC; }
+  .badge-PROCESSING { background: rgba(255,145,0,0.2); color: #FF9100; }
+  .badge-READY      { background: rgba(0,230,118,0.15); color: #00E676; }
+  .badge-FAILED     { background: rgba(255,82,82,0.2);  color: #FF5252; }
+
+  /* Action card */
+  .action-card {
+    background: #1A1A3E;
+    border: 1px solid #2A2A5A;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .action-card h3 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #6666AA; margin-bottom: 16px; }
+
+  .error-box {
+    background: rgba(255,82,82,0.1);
+    border: 1px solid rgba(255,82,82,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: #FF5252;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .progress-section { margin-bottom: 16px; }
+  .progress-label { font-size: 13px; color: #AAAACC; margin-bottom: 8px; }
+  .progress-wrap { background: #2A2A5A; border-radius: 6px; height: 10px; overflow: hidden; }
+  .progress-bar  { height: 10px; border-radius: 6px; background: linear-gradient(90deg, #7C4DFF, #FF4081); transition: width 0.4s ease; }
+
+  .btn-group { display: flex; flex-direction: column; gap: 10px; }
+  .btn {
+    border: none;
+    border-radius: 12px;
+    padding: 14px 22px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+  .btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); text-decoration: none; }
+  .btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+  .btn-primary  { background: #7C4DFF; color: #fff; }
+  .btn-success  { background: linear-gradient(135deg, #00C853, #00E676); color: #001a00; }
+  .btn-outline  { background: transparent; color: #AAAACC; border: 1px solid #2A2A5A; }
+  .btn-download { background: #1E1E4E; color: #AAAACC; border: 1px solid #2A2A5A; font-size: 14px; }
+
+  .downloads { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a class="back-btn" href="/">← All Songs</a>
+  <span class="header-title">Song Detail</span>
+</header>
+
+<main class="main">
+
+  <!-- Hero -->
+  <div class="hero-card">
+    <div class="hero-icon">♫</div>
+    <div class="hero-info">
+      <h2>{{ song.title }}</h2>
+      <p>by {{ song.artist }}</p>
+      <span class="badge badge-{{ song.status }}" id="statusBadge">
+        {% if song.status == 'READY' %}✓ Ready for Karaoke
+        {% elif song.status == 'PROCESSING' %}⏳ Processing
+        {% elif song.status == 'FAILED' %}✕ Failed
+        {% else %}↑ Uploaded{% endif %}
+      </span>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="action-card">
+    <h3>Actions</h3>
+
+    {% if song.error_message %}
+    <div class="error-box">⚠ {{ song.error_message }}</div>
+    {% endif %}
+
+    {% if song.status == 'PROCESSING' %}
+    <div class="progress-section" id="progressSection">
+      <div class="progress-label" id="progressLabel">{{ song.progress }}% — Demucs is separating vocals…</div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar" style="width:{{ song.progress }}%"></div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div id="actionArea" class="btn-group">
+      {% if song.status == 'UPLOADED' or song.status == 'FAILED' %}
+        <button class="btn btn-primary" onclick="triggerSeparation(this)">
+          ✨ Start AI Separation
+        </button>
+
+      {% elif song.status == 'PROCESSING' %}
+        <button class="btn btn-outline" disabled>⏳ Separation running in background…</button>
+
+      {% elif song.status == 'READY' %}
+        <div class="downloads">
+          <a class="btn btn-download" href="/api/songs/{{ song.id }}/backing">⬇ Backing Track</a>
+          <a class="btn btn-download" href="/api/songs/{{ song.id }}/vocals">⬇ Vocals (debug)</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</main>
+
+<script>
+const SONG_ID = '{{ song.id }}';
+let poller = null;
+
+async function triggerSeparation(btn) {
+  btn.disabled = true;
+  btn.textContent = '⏳ Starting…';
+  const resp = await fetch(`/api/songs/${SONG_ID}/separate`, { method: 'POST' });
+  if (resp.ok) {
+    // Show progress section
+    const ps = document.getElementById('progressSection') || (() => {
+      const d = document.createElement('div');
+      d.id = 'progressSection';
+      d.className = 'progress-section';
+      d.innerHTML = `<div class="progress-label" id="progressLabel">0% — Demucs is separating vocals…</div>
+        <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>`;
+      document.getElementById('actionArea').before(d);
+      return d;
+    })();
+    document.getElementById('actionArea').innerHTML =
+      '<button class="btn btn-outline" disabled>⏳ Separation running in background…</button>';
+    document.getElementById('statusBadge').className = 'badge badge-PROCESSING';
+    document.getElementById('statusBadge').textContent = '⏳ Processing';
+    startPolling();
+  } else {
+    btn.disabled = false;
+    btn.textContent = '✨ Start AI Separation';
+    alert('Failed to start separation. Check server logs.');
+  }
+}
+
+function startPolling() {
+  if (poller) return;
+  poller = setInterval(async () => {
+    try {
+      const data = await fetch(`/api/songs/${SONG_ID}/progress`).then(r => r.json());
+      const bar   = document.getElementById('progressBar');
+      const label = document.getElementById('progressLabel');
+      if (bar)   bar.style.width  = data.progress + '%';
+      if (label) label.textContent = data.progress + '% — Demucs is separating vocals…';
+      if (data.status === 'READY') {
+        clearInterval(poller);
+        location.reload();
+      } else if (data.status === 'FAILED') {
+        clearInterval(poller);
+        location.reload();
+      }
+    } catch(e) { /* keep polling */ }
+  }, 2000);
+}
+
+if ('{{ song.status }}' === 'PROCESSING') startPolling();
+</script>
+</body>
+</html>

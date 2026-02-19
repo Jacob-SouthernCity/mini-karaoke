@@ -1,0 +1,31 @@
+# ── Python / Backend ──────────────────────────────────────
+backend/venv/
+backend/karaoke.db
+backend/storage/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+.env
+
+# ── Android ───────────────────────────────────────────────
+android/local.properties
+android/.gradle/
+android/build/
+android/app/build/
+android/app/.cxx/
+*.iml
+.idea/
+
+# RNNoise source (cloned separately — see README for setup)
+android/app/src/main/cpp/rnnoise/
+
+# ── OS / Editor ───────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+android/app/local.properties
+android/app/.gradle/
